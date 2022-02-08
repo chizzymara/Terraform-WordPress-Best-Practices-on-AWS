@@ -23,7 +23,7 @@ resource "aws_launch_configuration" "wordpress_config" {
   image_id        = aws_ami_from_instance.ami_wordpress.id
   instance_type   = "t2.micro"
   security_groups = [aws_security_group.bastion-guest.id, ]
-  user_data       = data.template_file
+  user_data       = data.template_file.efs-script.rendered
   depends_on = [
     aws_instance.Wordpress_Instance,
   ]
@@ -37,7 +37,14 @@ resource "aws_lb_target_group" "wp-target-group" {
   port        = 80
   protocol    = "HTTP"
   vpc_id      = aws_vpc.wordpress.id
-
+  health_check {
+    path = "/"
+    healthy_threshold = 6
+    unhealthy_threshold = 2
+    timeout = 2
+    interval = 5
+    matcher = "200-399"  # has to be HTTP 200 or fails
+  }
 }
 
 #resource "aws_lb_target_group_attachment" "TG-attachement" {
