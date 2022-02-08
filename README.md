@@ -4,4 +4,6 @@
 
 Terraform deployment of the aws wordpress best practices.
 
+https://aws.amazon.com/blogs/architecture/wordpress-best-practices-on-aws/
+
 ## Work still in progress! 
