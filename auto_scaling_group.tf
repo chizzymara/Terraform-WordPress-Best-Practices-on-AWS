@@ -9,11 +9,13 @@ resource "aws_ami_from_instance" "ami_wordpress" {
 data "template_file" "efs-script" {
   template = file("efs-script.sh")
   depends_on = [
-    aws_efs_file_system.wordpress-efs, aws_efs_mount_target.efs-mount-az1, aws_efs_mount_target.efs-mount-az2
+    aws_efs_file_system.wordpress-efs, aws_efs_mount_target.efs-mount-az1, aws_efs_mount_target.efs-mount-az2 , aws_elasticache_cluster.wordpress
   ]
   vars = {
     file_system_id = "${aws_efs_file_system.wordpress-efs.id}"
     region         = "${var.region1}"
+    node-az1       = "${element(aws_elasticache_cluster.wordpress.cache_nodes[*].address, 0)}"
+    node-az2       = "${element(aws_elasticache_cluster.wordpress.cache_nodes[*].address, 1)}"
   }
 }
 
