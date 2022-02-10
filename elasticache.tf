@@ -10,12 +10,12 @@ resource "aws_elasticache_subnet_group" "memcache-subnet-group" {
 
 resource "aws_elasticache_parameter_group" "default" {
   name   = "memcached-paremeter-group"
-  family = "memcached1.4"
+  family = "memcached1.6"
 
-  parameter {
-    name  = "max_item_size"
-    value = "1"
-  }
+  #parameter {
+   # name  = "max_item_size"
+    #value = "1024"
+  #}
 }
 
 resource "aws_elasticache_cluster" "wordpress" {
@@ -28,7 +28,7 @@ resource "aws_elasticache_cluster" "wordpress" {
   preferred_availability_zones    = [ "eu-central-1a", "eu-central-1b" ]
   az_mode              = "cross-az"
   subnet_group_name    = aws_elasticache_subnet_group.memcache-subnet-group.name
-  #security_group_ids = [aws_elasticache_security_group.security-group-memcache.id, ]
+  security_group_ids = [aws_security_group.memcached.id, ]
 }
 
 

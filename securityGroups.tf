@@ -113,3 +113,25 @@ resource "aws_security_group" "efs" {
     protocol        = "-1"
   }
 }
+
+resource "aws_security_group" "memcached" {
+  name        = "efs-sg"
+  description = "Allows inbound efs traffic from ec2"
+  vpc_id      = aws_vpc.wordpress.id
+
+  ingress {
+    #security_groups = [aws_security_group.bastion-guest.id]
+    from_port       = 11211
+    to_port         = 11211
+    protocol        = "tcp"
+    cidr_blocks      = ["0.0.0.0/0"]
+    ipv6_cidr_blocks = ["::/0"]
+  }
+
+  egress {
+    security_groups = [aws_security_group.bastion-guest.id]
+    from_port       = 0
+    to_port         = 0
+    protocol        = "-1"
+  }
+}
