@@ -12,3 +12,11 @@ resource "aws_route53_record" "a-record" {
     evaluate_target_health = true
   }
 }
+
+#resource "aws_route53_record" "cname-record" {
+#  zone_id = data.aws_route53_zone.selected.zone_id
+#  name    = "www.${var.dnsName}"
+#  type    = "CNAME"
+#  records = ["www.${var.dnsName}"]
+#  ttl     = "300"
+#}

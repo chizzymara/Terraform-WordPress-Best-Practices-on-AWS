@@ -9,7 +9,7 @@ resource "aws_ami_from_instance" "ami_wordpress" {
 data "template_file" "efs-script" {
   template = file("efs-script.sh")
   depends_on = [
-    aws_efs_file_system.wordpress-efs, aws_efs_mount_target.efs-mount-az1, aws_efs_mount_target.efs-mount-az2 , aws_elasticache_cluster.wordpress
+    aws_efs_file_system.wordpress-efs, aws_efs_mount_target.efs-mount-az1, aws_efs_mount_target.efs-mount-az2, aws_elasticache_cluster.wordpress
   ]
   vars = {
     file_system_id = "${aws_efs_file_system.wordpress-efs.id}"
@@ -40,12 +40,12 @@ resource "aws_lb_target_group" "wp-target-group" {
   protocol    = "HTTP"
   vpc_id      = aws_vpc.wordpress.id
   health_check {
-    path = "/"
-    healthy_threshold = 6
+    path                = "/"
+    healthy_threshold   = 6
     unhealthy_threshold = 2
-    timeout = 2
-    interval = 5
-    matcher = "200-399"  # has to be HTTP 200 or fails
+    timeout             = 2
+    interval            = 5
+    matcher             = "200-399" # has to be HTTP 200 or fails
   }
 }
 
