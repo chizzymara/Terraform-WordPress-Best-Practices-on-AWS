@@ -38,25 +38,3 @@ resource "aws_instance" "Bastion" {
   }
 }
 
-
-
-#Wordpress instance
-resource "aws_instance" "Wordpress_Instance" {
-  ami                    = data.aws_ami.ubuntu.id
-  instance_type          = "t2.micro"
-  subnet_id              = aws_subnet.app-subnet-az1.id
-  vpc_security_group_ids = [aws_security_group.bastion-guest.id]
-  depends_on             = [data.aws_key_pair.key_pair, aws_nat_gateway.Nat-Az1, aws_nat_gateway.Nat-Az2, aws_subnet.app-subnet-az1, aws_network_acl.nacl, aws_route_table.wp_priv_route_table1, aws_route_table.wp_priv_route_table2, aws_route_table_association.c, aws_route_table_association.d]
-  key_name               = data.aws_key_pair.key_pair.key_name
-  user_data              = file("start.sh")
-  iam_instance_profile   = aws_iam_instance_profile.wordpress_instance_profile.name
-  tags = {
-    Name = "Wordpress_Instance"
-  }
-}
-
-resource "time_sleep" "wait_300_seconds" {
-  depends_on = [aws_instance.Wordpress_Instance]
-
-  create_duration = "300s"
-}

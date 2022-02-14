@@ -3,19 +3,9 @@ resource "aws_elasticache_subnet_group" "memcache-subnet-group" {
   subnet_ids = [aws_subnet.data-subnet-az1.id, aws_subnet.data-subnet-az2.id]
 }
 
-#resource "aws_elasticache_security_group" "security-group-memcache" {
-#  name                 = "elasticache-security-group"
-#  security_group_names = [aws_security_group.bastion-guest.name]
-#}
-
 resource "aws_elasticache_parameter_group" "default" {
   name   = "memcached-paremeter-group"
   family = "memcached1.6"
-
-  #parameter {
-  # name  = "max_item_size"
-  #value = "1024"
-  #}
 }
 
 resource "aws_elasticache_cluster" "wordpress" {
@@ -31,4 +21,8 @@ resource "aws_elasticache_cluster" "wordpress" {
   security_group_ids           = [aws_security_group.memcached.id, ]
 }
 
+resource "time_sleep" "wait_150_seconds" {
+  depends_on = [aws_elasticache_cluster.wordpress]
 
+  create_duration = "150s"
+}

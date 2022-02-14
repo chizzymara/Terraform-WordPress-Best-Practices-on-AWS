@@ -25,13 +25,13 @@ variable "AvailabilityZone2" {
 variable "Key_pair_name" {
   type        = string
   description = "key pair name to be used to ssh to all our instances. must be created on the aws console and securely downloaded to system. only the name is required here"
-  default     = "Wordpress"
+  default     = "wordpress2"
 }
 
 variable "asg-max-size" {
   type        = number
   description = "maximum number of instances"
-  default     = "1"
+  default     = "2"
 }
 
 variable "asg-min-size" {
@@ -43,7 +43,7 @@ variable "asg-min-size" {
 variable "asg-desired-size" {
   type        = number
   description = "desired number of instances"
-  default     = "1"
+  default     = "2"
 }
 
 variable "dnsName" {

@@ -1,6 +1,6 @@
-output "Instance_public_ip" {
+output "Bastionhost_ip" {
   description = "public ip address of the ec2 instance"
-  value       = aws_instance.Wordpress_Instance.public_ip
+  value       = aws_instance.Bastion.public_ip
 }
 
 output "lb_dns_name" {
@@ -11,3 +11,6 @@ output "node-az1" {
   value = aws_elasticache_cluster.wordpress.cache_nodes
 }
 
+output "cloudfront_name" {
+  value = aws_cloudfront_distribution.worpress-cloud-front.domain_name
+}

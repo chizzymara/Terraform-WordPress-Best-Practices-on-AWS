@@ -1,6 +1,6 @@
 resource "aws_cloudfront_distribution" "worpress-cloud-front" {
   depends_on = [
-    aws_lb.wordpress_load_balancer
+    aws_lb.wordpress_load_balancer,
   ]
   origin {
     domain_name = aws_lb.wordpress_load_balancer.dns_name
@@ -8,8 +8,8 @@ resource "aws_cloudfront_distribution" "worpress-cloud-front" {
     custom_origin_config {
       http_port              = 80
       https_port             = 443
-      origin_protocol_policy = "https-only"
-      origin_ssl_protocols   = ["TLSv1"]
+      origin_protocol_policy = "http-only"
+      origin_ssl_protocols   = ["TLSv1.2"]
     }
   }
   enabled = true
@@ -20,25 +20,29 @@ resource "aws_cloudfront_distribution" "worpress-cloud-front" {
     }
   }
   default_cache_behavior {
-    allowed_methods = ["DELETE", "GET", "HEAD", "OPTIONS", "PATCH", "POST", "PUT"]
-    cached_methods  = ["GET", "HEAD"]
-    #same as the origin id of the cloudfront should probably turn it to a local
+    allowed_methods  = ["DELETE", "GET", "HEAD", "OPTIONS", "PATCH", "POST", "PUT"]
+    cached_methods   = ["GET", "HEAD"]
     target_origin_id = "web-frontend"
 
     forwarded_values {
       query_string = false
-      headers      = ["host"]
+
+      headers = ["Host"]
 
       cookies {
-        forward = "none"
+        forward           = "whitelist"
+        whitelisted_names = ["Host"]
       }
     }
-    viewer_protocol_policy = "redirect-to-https"
+
+    viewer_protocol_policy = "allow-all"
     min_ttl                = 0
     default_ttl            = 3600
     max_ttl                = 86400
 
   }
+
+  aliases = ["cloudchaser.live"]
   viewer_certificate {
     acm_certificate_arn      = "arn:aws:acm:us-east-1:626205521754:certificate/7655a6fa-4601-4e8e-87d3-354c0c301440"
     minimum_protocol_version = "TLSv1"

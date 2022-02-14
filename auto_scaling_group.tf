@@ -1,13 +1,12 @@
-#creating an ami image off the wordpress instance
-resource "aws_ami_from_instance" "ami_wordpress" {
-  name               = "ami_wordpress_terraform"
-  source_instance_id = aws_instance.Wordpress_Instance.id
-  depends_on         = [aws_instance.Wordpress_Instance, time_sleep.wait_300_seconds]
+resource "time_sleep" "wait_300_seconds" {
+  depends_on = [aws_autoscaling_group.wordpress_asg]
+
+  create_duration = "300s"
 }
 
 #userdata template to mount efs
 data "template_file" "efs-script" {
-  template = file("efs-script.sh")
+  template = file("user-data.sh")
   depends_on = [
     aws_efs_file_system.wordpress-efs, aws_efs_mount_target.efs-mount-az1, aws_efs_mount_target.efs-mount-az2, aws_elasticache_cluster.wordpress
   ]
@@ -19,15 +18,18 @@ data "template_file" "efs-script" {
   }
 }
 
+
 #creating a launch configuration based of ec2 ami
 resource "aws_launch_configuration" "wordpress_config" {
-  name            = "wordpress_config"
-  image_id        = aws_ami_from_instance.ami_wordpress.id
-  instance_type   = "t2.micro"
-  security_groups = [aws_security_group.bastion-guest.id, ]
-  user_data       = data.template_file.efs-script.rendered
+  name                 = "wordpress_config"
+  image_id             = data.aws_ami.ubuntu.id
+  instance_type        = "t2.micro"
+  security_groups      = [aws_security_group.bastion-guest.id, ]
+  iam_instance_profile = aws_iam_instance_profile.wordpress_instance_profile.name
+  user_data            = data.template_file.efs-script.rendered
   depends_on = [
-    aws_instance.Wordpress_Instance,
+    data.aws_key_pair.key_pair, aws_nat_gateway.Nat-Az1, aws_nat_gateway.Nat-Az2, aws_subnet.app-subnet-az1, aws_network_acl.nacl, aws_route_table.wp_priv_route_table1, aws_route_table.wp_priv_route_table2,
+    aws_route_table_association.c, aws_route_table_association.d, aws_efs_mount_target.efs-mount-az1, aws_efs_mount_target.efs-mount-az2
   ]
   key_name = data.aws_key_pair.key_pair.key_name
 }
@@ -42,18 +44,14 @@ resource "aws_lb_target_group" "wp-target-group" {
   health_check {
     path                = "/"
     healthy_threshold   = 6
-    unhealthy_threshold = 2
-    timeout             = 2
-    interval            = 5
+    unhealthy_threshold = 10
+    timeout             = 80
+    interval            = 100
     matcher             = "200-399" # has to be HTTP 200 or fails
   }
 }
 
-#resource "aws_lb_target_group_attachment" "TG-attachement" {
-#  target_group_arn = aws_lb_target_group.wp-target-group.arn
-#   target_id        = aws_lb.wordpress_load_balancer.arn
-#  port             = 80
-#}
+
 
 #creating the autoscaling group
 resource "aws_autoscaling_group" "wordpress_asg" {
@@ -64,7 +62,7 @@ resource "aws_autoscaling_group" "wordpress_asg" {
   health_check_type         = "ELB"
   desired_capacity          = var.asg-desired-size
   depends_on = [
-    aws_instance.Wordpress_Instance,
+    time_sleep.wait_150_seconds, aws_launch_configuration.wordpress_config
   ]
   #force_delete              = true
   launch_configuration = aws_launch_configuration.wordpress_config.name
